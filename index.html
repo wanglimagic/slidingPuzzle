@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script type="text/javascript" src="jquery-1.11.0.min.js"></script>
+
+    <style>
+        .board{
+            width: 102px;
+            height: 70px;
+            border: 1px solid black;
+        }
+        .cell{
+            border: 1px solid black;
+            float: left;
+            width: 30px;
+            height: 30px;
+            margin: 1px;
+        }
+    </style>
+</head>
+<body>
+<div class="board">
+
+</div>
+<script type="text/javascript">
+    function createBoardHtml(board) {
+        var html = '';
+        for (var i = 0; i < board.length; i++){
+            var cell = board[i];
+            for (var j = 0; j < cell.length; j++){
+               html += '<div class="cell cell' + cell[j] + '">' + cell[j] +'</div>';
+            }
+        }
+
+        return html;
+    }
+
+    var board = [[3,2,4],[1,5,0],[8,6,7]];
+    function boardToString(board) {
+        var boardString = '';
+        for (var i = 0; i < board.length; i++){
+            var cell = board[i];
+            for (var j = 0; j < cell.length; j++){
+                boardString = boardString + cell[j];
+            }
+        }
+        return boardString;
+    }
+    function stringToBord(boardString) {
+        var board = [];
+        for (var i = 0; i < boardString.length / 3; i++){
+            var cell = [];
+            for (var j = 0; j < 3; j++){
+                var num = boardString[i * 3 + j] - 0;
+                cell.push(num);
+            }
+            board.push(cell);
+        }
+        return board;
+    }
+
+    //获得0的位置
+    function getXy(board) {
+        var xy = [];
+        for (var i = 0; i < board.length; i++){
+            var cell = board[i];
+            for (var j = 0; j < cell.length; j++){
+                if(cell[j] === 0){
+                    xy.push(i);
+                    xy.push(j);
+                    return xy;
+                }
+            }
+        }
+        return xy;
+    }
+
+    var  slidingPuzzle = function (board) {
+        // 移动
+        var des = '123456780';
+        var moves = 0;//移动的步数
+        var moveTypes = [[0,-1],[0,1],[-1,0],[1,0]];//代表上下左右移动
+        var searchedMap = {};//已经搜索过的
+        var q = [];
+        var boardString = boardToString(board);
+        q.push(boardString);
+        searchedMap[boardString] = {status:0,pre:''};
+        while (q.length > 0){
+            var w = q.shift();
+            if(w === des){
+                return moves;
+            }
+            searchedMap[w].status = 1;//标记为已搜索
+            var b = stringToBord(w);
+            var xy = getXy(b);
+            var x = xy[0];
+            var y = xy[1];
+            for(var i = 0; i < moveTypes.length; i++){
+                var type = moveTypes[i];
+                if(type[0] + x >= 0 && type[0] + x <= 2 && type[1] + y >= 0 && type[1] + y <= 2){
+                    moves++;
+                    var bMoved = JSON.parse(JSON.stringify(b));
+                    var temp = bMoved[type[0] + x][type[1] + y];
+                    bMoved[type[0] + x][type[1] + y] = bMoved[x][y];
+                    bMoved[x][y] = temp;
+                    var bMovedString = boardToString(bMoved);
+                    //console.log(bMovedString);
+                    if(searchedMap[bMovedString]){
+                        continue;
+                    }
+                    if(bMovedString === des){
+                        // console.log(searchedMap);
+                        console.log(moves);
+
+                        var moveList = [des];
+                        var pre = w;
+                        while (pre != ''){
+                            moveList.push(pre);
+                            pre = searchedMap[pre].pre;
+                        }
+                        return moveList;
+                    }
+                    q.push(bMovedString);
+                    searchedMap[bMovedString] = {status:0,pre:w};
+                }
+            }
+        }
+
+    };
+    var a = slidingPuzzle(board);
+    console.log(a);
+   var html = createBoardHtml(board);
+   $(".board").html(html);
+
+   var steps = a.length;
+   console.log(steps);
+   $("body").click(function () {
+       if(steps >= 0){
+           var html = createBoardHtml(a[steps - 1]);
+           $(".board").html(html);
+           steps--;
+       }
+   });
+
+</script>
+</body>
+</html>
